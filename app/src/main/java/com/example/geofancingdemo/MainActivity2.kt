@@ -28,7 +28,9 @@ class MainActivity2 : AppCompatActivity(),
     GoogleMap.OnMapClickListener,
     GoogleMap.OnMarkerClickListener,
     GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
+    GoogleApiClient.OnConnectionFailedListener,
+    ResultCallback<Status>,
+    LocationListener {
     var mapFragment: MapFragment? = null
     var map: GoogleMap? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -41,8 +43,7 @@ class MainActivity2 : AppCompatActivity(),
 
     private val GEO_DURATION = (60 * 60 * 1000).toLong()
     private val GEOFENCE_REQ_ID = "My Geofence"
-    private val GEOFENCE_RADIUS = 500.0f // in meters
-
+    private val GEOFENCE_RADIUS = 1000.0f // in meters
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main2)
@@ -122,15 +123,19 @@ class MainActivity2 : AppCompatActivity(),
         }
     }
 
-//    fun startUpdated() {
-//        locationRequest = LocationRequest.create()
-//            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-//            .setInterval(UPDATE_INTERVAL!!)
-//            .setFastestInterval(FASTEST_INTERVAL!!)
-//        if (checkPermission()){
-//            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient,locationRequest,this)
-//        }
-//    }
+    fun startUpdated() {
+        locationRequest = LocationRequest.create()
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            .setInterval(UPDATE_INTERVAL!!)
+            .setFastestInterval(FASTEST_INTERVAL!!)
+        if (checkPermission()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                googleApiClient!!,
+                locationRequest,
+                MainActivity2@ this
+            )
+        }
+    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap;
@@ -169,11 +174,13 @@ class MainActivity2 : AppCompatActivity(),
                 )
                 Toast.makeText(
                     this,
-                    "${lastLocation!!.latitude + lastLocation!!.longitude}",
+                    "Last Location is ${lastLocation!!.latitude} longitude  ${lastLocation!!.longitude}",
                     Toast.LENGTH_SHORT
                 ).show()
                 markerLocation(LatLng(lastLocation!!.latitude, lastLocation!!.longitude))
+                startUpdated()
             } else {
+                startUpdated()
                 Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
             }
         }
@@ -181,6 +188,11 @@ class MainActivity2 : AppCompatActivity(),
 
     var locationMarker: Marker? = null
     fun markerLocation(latLng: LatLng) {
+        Toast.makeText(
+            this,
+            "Location is ${latLng.latitude} Longitude ${latLng.longitude}",
+            Toast.LENGTH_SHORT
+        ).show()
         var markerOption =
             MarkerOptions().position(latLng).title("${latLng.latitude + latLng.longitude}")
         if (map != null) {
@@ -288,10 +300,15 @@ class MainActivity2 : AppCompatActivity(),
         if (geoFenceLimits != null) geoFenceLimits!!.remove()
         val circleOptions = CircleOptions()
             .center(geoFenceMarker!!.getPosition())
-            .strokeColor(Color.argb(50, 70, 70, 70))
-            .fillColor(Color.argb(100, 150, 150, 150))
+            .strokeColor(Color.argb(50, 0, 0, 70))
+            .fillColor(Color.argb(100, 0, 0, 150))
             .radius(GEOFENCE_RADIUS.toDouble())
         geoFenceLimits = map!!.addCircle(circleOptions)
+    }
+
+    override fun onLocationChanged(p0: Location) {
+        lastLocation = p0
+        markerLocation(LatLng(lastLocation!!.latitude, lastLocation!!.longitude))
     }
 
 }

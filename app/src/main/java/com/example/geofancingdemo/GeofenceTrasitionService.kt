@@ -7,8 +7,8 @@ import android.content.Intent
 import android.graphics.Color
 import android.text.TextUtils
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import com.example.geofancingdemo.MyGeofenceErrorMessages.getErrorString
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
@@ -62,15 +62,16 @@ class GeofenceTrasitionService(name: String?) : IntentService(name) {
             triggeringGeofencesList.add(geofence.requestId)
         }
         var status: String? = null
-        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) status =
-            "Entering " else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) status =
-            "Exiting "
+        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER)
+            status = "Entering "
+        else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT)
+            status = "Exiting "
         return status + TextUtils.join(", ", triggeringGeofencesList)
     }
 
     private fun sendNotification(msg: String) {
         Log.i(TAG, "sendNotification: $msg")
-
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
         // Intent to start the main Activity
         val notificationIntent: Intent = Intent(this, MainActivity2::class.java)
         val stackBuilder: TaskStackBuilder = TaskStackBuilder.create(this)
